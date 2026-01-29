@@ -125,17 +125,12 @@ class ReportView(QWidget):
         return channels
 
     def setup_tabs(self):
-        """[수정 요청 3-1] 동적 탭 생성 (settings.json 기반)"""
-        # "전체"는 기본 탭으로 고정
+        """동적 탭 생성 (settings.json 기반). 등록된 채널이 없으면 '전체' 탭만 표시."""
         channel_names = ["전체"]
-        
-        # 파일에서 로드한 채널명 추가
         loaded = self.load_channels()
         if loaded:
             channel_names.extend(loaded)
-        else:
-            # 설정 파일이 없거나 비어있을 경우 기본값 (예시)
-            channel_names.extend(["금융투자", "은행", "카드", "생명", "저축은행"])
+        # 등록된 채널이 없을 경우 "전체" 탭만 유지 (테스트용 탭 추가하지 않음)
 
         for name in channel_names:
             if name == "전체":

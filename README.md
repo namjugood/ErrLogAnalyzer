@@ -60,9 +60,46 @@ pip install -r requirements.txt
 
 ## 실행 방법
 
+### 개발 모드 실행
 ```bash
 python main.py
 ```
+
+### 배포용 빌드
+
+Windows 환경에서 실행 파일로 빌드하려면:
+
+1. **필요한 패키지 설치**
+```bash
+pip install -r requirements.txt
+```
+
+2. **빌드 스크립트 실행**
+```bash
+build.bat
+```
+
+빌드 스크립트는 다음 작업을 수행합니다:
+- PyInstaller를 사용하여 실행 파일 생성
+- 필요한 리소스 파일(폰트 등) 포함
+- 배포 폴더 구조 생성 (`dist/ErrLogAnalyzer/`)
+- 7-Zip으로 압축 파일 생성 (`ErrLogAnalyzer_vYYYYMMDD_HHMMSS.7z`)
+
+**빌드 결과물:**
+- `dist/ErrLogAnalyzer/ErrLogAnalyzer.exe`: 실행 파일
+- `dist/ErrLogAnalyzer/settings/`: 설정 파일 폴더 (템플릿 포함)
+- `dist/ErrLogAnalyzer/data/`: 데이터 저장 폴더 구조
+- `ErrLogAnalyzer_vYYYYMMDD_HHMMSS.7z`: 배포용 압축 파일
+
+**수동 빌드:**
+```bash
+pyinstaller --clean ErrLogAnalyzer.spec
+```
+
+**주의사항:**
+- 빌드 전에 `settings/settings.json` 파일이 올바르게 설정되어 있는지 확인하세요.
+- 빌드된 실행 파일은 `dist/ErrLogAnalyzer/` 폴더에 생성됩니다.
+- 배포 시 `settings/` 폴더의 설정 파일을 함께 배포해야 합니다.
 
 ## 주요 기능
 
