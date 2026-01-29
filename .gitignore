@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 프로젝트 특정 폴더 제외
+logs/
+settings/
+
+# 데이터 폴더 (선택적)
+data/reports/
+*.pdf
+
+# 환경 변수
+.env
+.env.local
+
+# 로그 파일
+*.log
+
+# 임시 파일
+*.tmp
+*.bak
+*.cache
