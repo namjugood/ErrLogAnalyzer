@@ -97,28 +97,25 @@ class PDFGenerator:
         # 2. 에러 통계 (테이블) - [수정] 구분 컬럼 추가
         elements.append(Paragraph("1. 주요 에러 통계 (Top Issues)", h1_style))
         
-        # 헤더에 "구분" 추가
-        table_data = [["구분", "순위", "서비스", "에러 코드", "발생 횟수", "최초 발생 시각"]]
+        # 헤더: 구분, 채널(chnl), 순위, 서비스, 에러 코드, 발생 횟수, 최초 발생 시각
+        table_data = [["구분", "채널", "순위", "서비스", "에러 코드", "발생 횟수", "최초 발생 시각"]]
         issues = aggregator_data.get('issue_groups', [])
-        
-        # issue_groups는 이미 정렬되어 있고 error_id가 할당되어 있음
-        
+
         for idx, issue in enumerate(issues[:10], 1):
             svc_op = f"{issue.get('target_service', '-')}.{issue.get('target_operation', '-')}"
             row = [
-                issue.get('error_id', '-'), # [추가] 구분 값 (Error01 등)
+                issue.get('error_id', '-'),
+                get_chnl_label(issue.get('channel', '') or ''),
                 str(idx),
-                svc_op[:30],
+                svc_op[:28],
                 issue.get('error_code', '-'),
                 f"{issue.get('total_count', 0)}건",
                 issue.get('time_context', {}).get('first_seen', '-')
             ]
             table_data.append(row)
 
-        # 컬럼 너비 조정 (구분 컬럼 공간 확보)
-        # 기존: [15, 60, 30, 25, 40] -> 총 170
-        # 변경: [15(구분), 10(순위), 55(서비스), 25(코드), 25(횟수), 40(시간)] -> 총 170mm (A4 너비 고려)
-        t = Table(table_data, colWidths=[15*mm, 10*mm, 55*mm, 25*mm, 25*mm, 40*mm])
+        # 컬럼 너비: 구분 12, 채널 12, 순위 8, 서비스 50, 코드 22, 횟수 22, 시간 42 (총 168mm)
+        t = Table(table_data, colWidths=[12*mm, 12*mm, 8*mm, 50*mm, 22*mm, 22*mm, 42*mm])
         t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),

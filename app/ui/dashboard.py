@@ -1,5 +1,3 @@
-# app/ui/dashboard.py
-
 import json
 import os
 from datetime import datetime
@@ -8,10 +6,9 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
                              QSpacerItem, QSizePolicy, QTabWidget, QScrollArea, 
                              QApplication, QDateEdit, QComboBox)
 from PyQt6.QtCore import Qt, pyqtSlot, QDate, QTime
-from PyQt6.QtGui import QColor, QFont
+from PyQt6.QtGui import QColor, QFont, QTextCursor
 
 from app.workers.monitor_worker import MonitorWorker
-# [수정] 스타일 임포트 추가
 from app.ui.styles import DASHBOARD_STYLES
 
 class DashboardView(QWidget):
@@ -38,7 +35,6 @@ class DashboardView(QWidget):
             return []
 
     def init_ui(self):
-        # [수정] 전용 스타일 적용
         self.setStyleSheet(DASHBOARD_STYLES)
 
         main_layout = QVBoxLayout(self)
@@ -48,31 +44,29 @@ class DashboardView(QWidget):
         # 1. 상단 헤더
         main_layout.addWidget(self.create_header())
 
-        # 2. [수정] 조회 기간 설정 (가로 전체 차지하도록 상단 배치)
+        # 2. 조회 기간 설정
         main_layout.addWidget(self.create_date_selector())
 
-        # 3. 메인 컨텐츠 (좌: 채널리스트 / 우: 콘솔)
+        # 3. 메인 컨텐츠
         content_layout = QHBoxLayout()
         content_layout.setSpacing(20)
 
-        # [좌측] 채널 리스트 스크롤 영역
+        # [좌측] 채널 리스트
         self.left_layout = QVBoxLayout()
         self.left_layout.setSpacing(10)
         self.left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.left_layout.setContentsMargins(0, 0, 0, 0)
         
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
-        # [수정] 스크롤 영역 배경 투명화 확실하게 적용
         scroll.setStyleSheet("background-color: transparent; border: none;")
         
         left_widget = QWidget()
-        left_widget.setObjectName("ScrollContents") # 스타일 적용을 위한 ID
+        left_widget.setObjectName("ScrollContents")
         left_widget.setLayout(self.left_layout)
         scroll.setWidget(left_widget)
         
-        # [우측] 채널별 콘솔 탭
+        # [우측] 탭
         self.tabs = QTabWidget()
         self.tabs.setStyleSheet("""
             QTabWidget::pane { border: 1px solid #374151; border-radius: 8px; background-color: #161B26; }
@@ -80,24 +74,20 @@ class DashboardView(QWidget):
             QTabBar::tab:selected { background: #161B26; color: #60A5FA; font-weight: bold; border-bottom: 2px solid #60A5FA; }
         """)
 
-        # 레이아웃 비율 설정 (좌: 4, 우: 6)
         content_layout.addWidget(scroll, 4)
         content_layout.addWidget(self.tabs, 6)
 
         main_layout.addLayout(content_layout)
 
-    # [신규] 날짜 선택기 위젯 생성 메서드
     def create_date_selector(self):
-        """가로형 조회 기간 설정 바 생성"""
         container = QFrame()
         container.setObjectName("DateCard")
-        container.setFixedHeight(60) # 높이 고정으로 날렵하게
+        container.setFixedHeight(60)
         
         layout = QHBoxLayout(container)
-        layout.setContentsMargins(20, 0, 20, 0) # 상하 여백 최소화
+        layout.setContentsMargins(20, 0, 20, 0)
         layout.setSpacing(15)
 
-        # 아이콘 및 타이틀
         icon_lbl = QLabel("🕒")
         icon_lbl.setStyleSheet("font-size: 18px; background: transparent;")
         title_lbl = QLabel("조회 기간 설정")
@@ -106,22 +96,18 @@ class DashboardView(QWidget):
         layout.addWidget(icon_lbl)
         layout.addWidget(title_lbl)
 
-        # 날짜/시간 입력 위젯들
         now = QDate.currentDate()
         
-        # Start
         self.date_start = QDateEdit(now)
         self.date_start.setDisplayFormat("yyyy-MM-dd")
         self.date_start.setCalendarPopup(True)
         self.time_start = self.create_time_combo("00:00")
         
-        # End
         self.date_end = QDateEdit(now)
         self.date_end.setDisplayFormat("yyyy-MM-dd")
         self.date_end.setCalendarPopup(True)
         self.time_end = self.create_time_combo("23:59")
 
-        # 라벨 스타일링
         lbl_start = QLabel("Start:")
         lbl_start.setStyleSheet("color: #9CA3AF; font-weight: bold;")
         lbl_end = QLabel("End:")
@@ -129,17 +115,13 @@ class DashboardView(QWidget):
         lbl_tilde = QLabel("~")
         lbl_tilde.setStyleSheet("color: #6B7280; font-size: 16px; font-weight: bold;")
 
-        # 배치 (가로 일렬)
-        layout.addStretch() # 왼쪽 여백 채우기
-        
+        layout.addStretch()
         layout.addWidget(lbl_start)
         layout.addWidget(self.date_start)
         layout.addWidget(self.time_start)
-        
         layout.addSpacing(10)
         layout.addWidget(lbl_tilde)
         layout.addSpacing(10)
-        
         layout.addWidget(lbl_end)
         layout.addWidget(self.date_end)
         layout.addWidget(self.time_end)
@@ -172,11 +154,9 @@ class DashboardView(QWidget):
         return frame
 
     def refresh_dashboard(self):
-        """[수정] 설정 저장 시 호출되는 슬롯"""
         self.channels = self.load_channels_from_settings()
         self.badge.setText(f" ● {len(self.channels)}개 채널 ")
 
-        # 기존 UI 초기화
         while self.left_layout.count():
             child = self.left_layout.takeAt(0)
             if child.widget():
@@ -199,13 +179,11 @@ class DashboardView(QWidget):
         name = channel_data.get('name', 'Unknown')
         key = channel_data.get('key', name)
 
-        # 1. 우측: 콘솔 탭 생성 (버튼 포함)
         page_widget = QWidget()
         page_layout = QVBoxLayout(page_widget)
         page_layout.setContentsMargins(0,0,0,0)
         page_layout.setSpacing(0)
 
-        # 툴바 (Clear, Copy 버튼)
         toolbar = QHBoxLayout()
         toolbar.setContentsMargins(10, 5, 10, 5)
         toolbar.addStretch()
@@ -221,7 +199,6 @@ class DashboardView(QWidget):
         toolbar.addWidget(btn_copy)
         toolbar.addWidget(btn_clear)
         
-        # 콘솔 뷰어
         console = QTextEdit()
         console.setReadOnly(True)
         console.setStyleSheet("""
@@ -235,7 +212,6 @@ class DashboardView(QWidget):
             }
         """)
         
-        # 버튼 기능 연결
         btn_clear.clicked.connect(console.clear)
         btn_copy.clicked.connect(lambda: QApplication.clipboard().setText(console.toPlainText()))
 
@@ -244,7 +220,6 @@ class DashboardView(QWidget):
         
         self.tabs.addTab(page_widget, name)
 
-        # 2. 좌측: 카드 생성
         card = QFrame()
         card.setObjectName("Card")
         card.setStyleSheet("#Card { background-color: #1F2937; border-radius: 12px; border: 1px solid #374151; }")
@@ -252,7 +227,6 @@ class DashboardView(QWidget):
         card_layout.setContentsMargins(20, 20, 20, 20)
         card_layout.setSpacing(10)
 
-        # 상단
         top_row = QHBoxLayout()
         icon = QLabel("❖")
         icon.setFixedSize(40, 40)
@@ -311,7 +285,6 @@ class DashboardView(QWidget):
             'tab_index': self.tabs.count() - 1
         }
 
-    # Dify 설정 로드
     def load_dify_config(self):
         default_config = {
             "url": "https://api.dify.ai/v1/workflows/run",
@@ -330,12 +303,10 @@ class DashboardView(QWidget):
     def create_time_combo(self, default_text="00:00"):
         combo = QComboBox()
         combo.setEditable(True)
-        # 아이템 추가
         times = [f"{h:02d}:{m:02d}" for h in range(24) for m in (0, 30)]
         if "23:59" not in times: times.append("23:59")
         combo.addItems(times)
         combo.setCurrentText(default_text)
-        # 콤보박스 내부 텍스트필드 스타일 적용 (필수)
         combo.lineEdit().setStyleSheet("background: transparent; border: none; color: white;")
         return combo
 
@@ -355,10 +326,8 @@ class DashboardView(QWidget):
         self.tabs.setCurrentIndex(ui['tab_index'])
         ui['console'].clear()
         
-        # [수정] 분리된 날짜/시간 위젯에서 값 가져와서 합치기
         d_start = self.date_start.date().toString("yyyy-MM-dd")
         t_start = self.time_start.currentText()
-        # 시간 포맷 보정 (HH:MM -> HH:MM:00)
         if len(t_start) == 5: t_start += ":00"
         
         d_end = self.date_end.date().toString("yyyy-MM-dd")
@@ -388,12 +357,18 @@ class DashboardView(QWidget):
     def append_log(self, key, message, level="INFO"):
         ui = self.ui_items.get(key)
         if not ui: return
+        console = ui['console']
+
+        # [변경] 상태 추적 속성 확인 (없으면 초기화)
+        if not hasattr(console, "last_was_progress"):
+            console.last_was_progress = False
 
         time_str = datetime.now().strftime("%H:%M:%S")
         color_map = {
             "INFO": "#10B981", "WARN": "#FBBF24", 
             "ERROR": "#EF4444", "DEBUG": "#6B7280", 
-            "SCAN": "#3B82F6", "SUCCESS": "#34D399"
+            "SCAN": "#3B82F6", "SUCCESS": "#34D399",
+            "PROGRESS": "#8B5CF6"  # [신규] 진행률용 색상 (보라색)
         }
         color = color_map.get(level, "#D1D5DB")
         
@@ -404,13 +379,33 @@ class DashboardView(QWidget):
             <span style="color:#D1D5DB;">{message}</span>
         </div>
         """
-        ui['console'].append(html)
         
-        if level == "SCAN":
-            ui['status'].setText(message)
-        elif level == "ERROR":
-            ui['status'].setText("오류 발생")
-            ui['status'].setStyleSheet("color: #EF4444; font-size: 11px; margin-top: 5px;")
+        cursor = console.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+
+        # [핵심] PROGRESS 레벨일 경우 이전 줄 덮어쓰기 로직
+        if level == "PROGRESS":
+            if console.last_was_progress:
+                cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
+                cursor.removeSelectedText()
+                cursor.insertHtml(html)
+            else:
+                # 처음 PROGRESS 시작 시
+                console.append(html)
+            
+            console.last_was_progress = True
+            
+            # 커서를 맨 뒤로 보정
+            cursor.movePosition(QTextCursor.MoveOperation.End)
+            console.setTextCursor(cursor)
+        else:
+            # 일반 메시지는 그냥 추가
+            console.append(html)
+            console.last_was_progress = False
+        
+        # 스크롤 최하단
+        sb = console.verticalScrollBar()
+        sb.setValue(sb.maximum())
 
     @pyqtSlot(str, int)
     def on_worker_finished(self, key, error_count):
