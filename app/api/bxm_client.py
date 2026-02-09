@@ -157,6 +157,7 @@ class BxmApiClient:
             response = session.post(api_url, headers=headers, cookies=cookies, json=payload, timeout=self.timeout)
             response.raise_for_status()
             res_json = response.json()
+            self._log(f"***에러 로그 조회 응답: body={json.dumps(res_json.get('ErrorLogListOMM', {}), ensure_ascii=False)[:200]}...", "INFO")
 
             top_keys = list(res_json.keys()) if isinstance(res_json, dict) else []
             has_omm = "ErrorLogListOMM" in res_json

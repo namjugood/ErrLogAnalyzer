@@ -1,3 +1,5 @@
+# app/ui/dashboard.py
+
 import json
 import os
 from datetime import datetime
@@ -6,7 +8,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
                              QSpacerItem, QSizePolicy, QTabWidget, QScrollArea, 
                              QApplication, QDateEdit, QComboBox)
 from PyQt6.QtCore import Qt, pyqtSlot, QDate, QTime
-from PyQt6.QtGui import QColor, QFont, QTextCursor
+from PyQt6.QtGui import QColor, QFont, QTextCursor # QTextCursor 필수
 
 from app.workers.monitor_worker import MonitorWorker
 from app.ui.styles import DASHBOARD_STYLES
@@ -55,6 +57,7 @@ class DashboardView(QWidget):
         self.left_layout = QVBoxLayout()
         self.left_layout.setSpacing(10)
         self.left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.left_layout.setContentsMargins(0, 0, 0, 0)
         
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -359,19 +362,17 @@ class DashboardView(QWidget):
         if not ui: return
         console = ui['console']
 
-        # [변경] 상태 추적 속성 확인 (없으면 초기화)
-        if not hasattr(console, "last_was_progress"):
-            console.last_was_progress = False
-
         time_str = datetime.now().strftime("%H:%M:%S")
         color_map = {
             "INFO": "#10B981", "WARN": "#FBBF24", 
             "ERROR": "#EF4444", "DEBUG": "#6B7280", 
             "SCAN": "#3B82F6", "SUCCESS": "#34D399",
-            "PROGRESS": "#8B5CF6"  # [신규] 진행률용 색상 (보라색)
+            "PROGRESS": "#8B5CF6"
         }
         color = color_map.get(level, "#D1D5DB")
         
+        # [수정] 복잡한 커서 조작(덮어쓰기) 로직을 모두 제거하고 단순 추가(append)로 변경
+        # 크래시 원인을 원천 차단합니다.
         html = f"""
         <div style="margin-bottom: 2px;">
             <span style="color:#52525B">[{time_str}]</span> 
@@ -380,32 +381,14 @@ class DashboardView(QWidget):
         </div>
         """
         
-        cursor = console.textCursor()
-        cursor.movePosition(QTextCursor.MoveOperation.End)
-
-        # [핵심] PROGRESS 레벨일 경우 이전 줄 덮어쓰기 로직
-        if level == "PROGRESS":
-            if console.last_was_progress:
-                cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
-                cursor.removeSelectedText()
-                cursor.insertHtml(html)
-            else:
-                # 처음 PROGRESS 시작 시
-                console.append(html)
-            
-            console.last_was_progress = True
-            
-            # 커서를 맨 뒤로 보정
-            cursor.movePosition(QTextCursor.MoveOperation.End)
-            console.setTextCursor(cursor)
-        else:
-            # 일반 메시지는 그냥 추가
-            console.append(html)
-            console.last_was_progress = False
+        console.append(html)
         
-        # 스크롤 최하단
-        sb = console.verticalScrollBar()
-        sb.setValue(sb.maximum())
+        # 상태 메시지 업데이트
+        if level == "SCAN" or level == "PROGRESS":
+            ui['status'].setText(message)
+        elif level == "ERROR":
+            ui['status'].setText("오류 발생")
+            ui['status'].setStyleSheet("color: #EF4444; font-size: 11px; margin-top: 5px;")
 
     @pyqtSlot(str, int)
     def on_worker_finished(self, key, error_count):

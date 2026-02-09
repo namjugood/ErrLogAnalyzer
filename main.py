@@ -2,6 +2,8 @@
 
 import sys
 import time
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
 

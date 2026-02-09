@@ -87,7 +87,7 @@ class LogAggregator:
             issue_groups.append({
                 "error_id": error_id,
                 "channel": chnl,
-                "signature": f"{app} | {svc}.{op} | {code}",
+                "signature": f"{chnl} | {app} | {svc}.{op} | {code}",
                 "target_service": svc,
                 "target_operation": op,
                 "application": app,
