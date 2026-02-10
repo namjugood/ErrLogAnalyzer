@@ -2,6 +2,10 @@
 
 Python + PyQt6 기반의 데스크톱 애플리케이션으로, BXM 에러 로그 파일을 실시간으로 모니터링하고 AI를 활용하여 분석하는 도구입니다.
 
+## 최근 업데이트
+
+* **Dify 응답 정제**: Dify 결과물 맨 앞에 포함되는 `<think>...</think>` 형태의 사고 과정 태그를 자동으로 제거합니다. `dify_client`, `pdf_generator`, `monitor_worker`에서 스트리밍·병합·PDF 생성 단계 모두에 적용되어 최종 리포트에 노출되지 않습니다.
+
 ## 프로젝트 구조
 
 
@@ -139,6 +143,7 @@ pyinstaller --clean ErrLogAnalyzer.spec
 
 * `app/services/dify_client.py`를 통해 Dify API와 통신하여 AI 분석 결과를 받아옵니다.
 * Streaming 응답 처리를 지원하여 분석 과정을 실시간으로 추적합니다.
+* Dify 응답에 포함된 `<think>...</think>` 태그는 자동 제거되어 최종 분석 결과와 PDF에만 본문이 반영됩니다.
 
 ### 5. 사용자 인터페이스 (UI/UX)
 
