@@ -34,6 +34,7 @@ def _merge_ai_chunks(chunks, logger_callback=None):
     - 문자열 청크(delta)는 모두 이어붙인 뒤 JSON 파싱 시도.
     - 딕셔너리/리스트 청크는 수집하되, 이중 리스트는 평탄화.
     - 투입 데이터(issue_groups)는 필터링하여 제외.
+    - error_id(issue_groups의 Error01, Error02 등)가 있는 항목은 동일 error_id 기준으로 중복 제거(첫 번째만 유지).
     - 결과적으로 List[dict] 또는 dict 또는 str(파싱 실패 시) 반환.
     """
     def _log(msg, level="INFO"):
@@ -121,7 +122,25 @@ def _merge_ai_chunks(chunks, logger_callback=None):
 
     # 병합 결과 요약 로그
     _log(f"[병합] 완료 - 결과 데이터: {result_data_count}개, 제외된 투입 데이터: {input_data_count}개", "INFO")
-    
+
+    # error_id 기준 중복 제거 (issue_groups의 Error01, Error02 등과 동일한 키 사용)
+    if structured_data and isinstance(structured_data, list):
+        seen_error_ids = set()
+        deduped = []
+        removed_by_error_id = 0
+        for item in structured_data:
+            if isinstance(item, dict):
+                eid = item.get("error_id")
+                if eid is not None and str(eid).strip():
+                    if eid in seen_error_ids:
+                        removed_by_error_id += 1
+                        continue
+                    seen_error_ids.add(eid)
+            deduped.append(item)
+        if removed_by_error_id > 0:
+            _log(f"[병합] error_id 중복 제거: {removed_by_error_id}건 제거, 유지: {len(deduped)}건", "INFO")
+        structured_data = deduped
+
     if not structured_data:
         _log("[병합] 최종 구조화된 데이터가 없습니다.", "WARN")
         return None
@@ -174,7 +193,8 @@ class MonitorWorker(QThread):
         page = 1
         
         try:
-            while self.is_running and page <= 5:
+            # 기간 내 전체 로그 조회 (페이지 제한 없이 100건씩 계속 요청)
+            while self.is_running:
                 logs = bxm_client.get_today_error_logs(base_url, cookies, start_dt, end_dt, page_num=page)
                 
                 if not logs:
@@ -288,7 +308,7 @@ class MonitorWorker(QThread):
             try:
                 # PDF 생성 시 투입 데이터(input_data)와 결과 데이터(analysis_data)를 명확히 분리하여 전달
                 self.log_signal.emit(f"[PDF 생성] 투입 데이터: {len(input_data.get('issue_groups', []))}개 그룹, 결과 데이터 타입: {type(analysis_data).__name__}", "INFO")
-                report_path = pdf_gen.create_report(channel_name, analysis_data, input_data)
+                report_path = pdf_gen.create_report(channel_name, analysis_data, input_data, date_range=self.date_range)
                 self.log_signal.emit(f"리포트 생성 완료: {os.path.basename(report_path)}", "INFO")
             except Exception as e:
                 self.log_signal.emit(f"PDF 생성 실패: {str(e)}", "ERROR")

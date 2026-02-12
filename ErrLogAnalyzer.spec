@@ -15,8 +15,11 @@ a = Analysis(
         'PyQt6.QtCore',
         'PyQt6.QtGui',
         'PyQt6.QtWidgets',
-        'reportlab.pdfbase.ttfonts',
-        'reportlab.pdfbase.pdfmetrics',
+        # PDF 생성 (fpdf2)
+        'fpdf',
+        'fpdf.fonts',
+        'fpdf.table',
+        'fpdf.enums',
         'matplotlib.backends.backend_agg',
         'matplotlib.figure',
         'matplotlib.dates',

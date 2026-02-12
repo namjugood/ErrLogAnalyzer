@@ -13,7 +13,7 @@ Python + PyQt6 기반의 데스크톱 애플리케이션으로, BXM 에러 로�
 
 ErrLogAnalyzer/
 ├── main.py                  # 프로그램 시작점 (Entry Point, 지연 로딩 적용)
-├── requirements.txt         # 의존성 패키지 (PyQt6, requests, reportlab 등)
+├── requirements.txt         # 의존성 패키지 (PyQt6, requests, fpdf2 등)
 ├── .gitignore              # Git 제외 파일 목록
 ├── config/                 # 설정 모듈
 │   └── settings.py         # 설정 관리 모듈
@@ -171,14 +171,14 @@ pyinstaller --clean ErrLogAnalyzer.spec
 * PyQt6 >= 6.6.0
 * requests >= 2.31.0
 * watchdog >= 3.0.0
-* reportlab >= 3.6.0
+* fpdf2 >= 2.7.0
 
 ## 주요 의존성
 
 * **PyQt6**: GUI 프레임워크
 * **requests**: HTTP 클라이언트 (API 통신)
 * **watchdog**: 파일 시스템 모니터링
-* **reportlab**: PDF 생성
+* **fpdf2**: PDF 생성
 
 ## 설정
 
@@ -217,7 +217,7 @@ pyinstaller --clean ErrLogAnalyzer.spec
 * **Python 3.8+**: 프로그래밍 언어
 * **PyQt6**: 데스크톱 GUI 프레임워크
 * **watchdog**: 파일 시스템 모니터링 라이브러리
-* **reportlab**: PDF 생성 라이브러리
+* **fpdf2**: PDF 생성 라이브러리
 * **requests**: HTTP 클라이언트 라이브러리
 
 ## 아키텍처
